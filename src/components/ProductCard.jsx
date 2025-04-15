@@ -4,8 +4,7 @@ import { ShoppingCart } from "@mui/icons-material";
 
 const ProductCard = ({ product }) => {
   const defaultImage = "https://placehold.co/300x300/6366f1/fff?text=GameXpress";
-  
-  // Find primary image or first image, or use default
+
   const primaryImage = product.images.find(img => img.is_primary === 1);
   const firstImage = product.images[0];
   const imageUrl = primaryImage?.image_url || firstImage?.image_url;

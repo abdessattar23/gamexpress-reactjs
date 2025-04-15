@@ -18,15 +18,14 @@ const Products = () => {
   const { products, loading, error } = useProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12; // 12 products per page
+  const productsPerPage = 12;
 
-  // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
+
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
@@ -91,13 +90,13 @@ const Products = () => {
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{ mb: 3 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
+          // InputProps={{
+          //   startAdornment: (
+          //     <InputAdornment position="start">
+          //       <Search />
+          //     </InputAdornment>
+          //   ),
+          // }}
         />
       </Box>
 
@@ -121,8 +120,8 @@ const Products = () => {
                   item 
                   key={product.id} 
                   sx={{ 
-                    width: '300px', // Exact width
-                    height: '360px', // Exact height
+                    width: '300px',
+                    height: '360px',
                     px: 0,
                     mb: 2
                   }}
