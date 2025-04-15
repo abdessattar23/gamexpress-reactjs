@@ -17,9 +17,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState({
     total_products: 0,
-    total_categories: 0,
     total_users: 0,
-    out_of_stock_products: 0,
+    total_low_products_in_stock: 0,
     latest_products: [],
   });
   const { user } = useAuth();
@@ -31,9 +30,9 @@ const Dashboard = () => {
         const { data } = await api.get("v1/admin/dashboard");
         setStatistics({
           total_products: data.data.total_products || 0,
-          total_categories: data.data.total_categories || 0,
           total_users: data.data.total_users || 0,
-          out_of_stock_products: data.data.out_of_stock_products || 0,
+          total_low_products_in_stock:
+            data.data.total_low_products_in_stock || 0,
           latest_products: data.data.latest_products || [],
         });
       } catch (error) {
@@ -108,12 +107,6 @@ const Dashboard = () => {
       color: "#4F46E5",
     },
     {
-      title: "Categories",
-      value: statistics.total_categories,
-      icon: <Category />,
-      color: "#10B981",
-    },
-    {
       title: "Users",
       value: statistics.total_users,
       icon: <Group />,
@@ -121,7 +114,7 @@ const Dashboard = () => {
     },
     {
       title: "Out of Stock",
-      value: statistics.out_of_stock_products,
+      value: statistics.total_low_products_in_stock,
       icon: <Warning />,
       color: "#EF4444",
     },
@@ -146,14 +139,14 @@ const Dashboard = () => {
           Dashboard
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Welcome back, {user.user.name}! Here's what's happening with your
+          Welcome back, {user.user.user.name}! Here's what's happening with your
           store.
         </Typography>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 5 }}>
         {dashboardStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid item xs={12} sm={4} md={4} key={index}>
             <StatCard {...stat} />
           </Grid>
         ))}

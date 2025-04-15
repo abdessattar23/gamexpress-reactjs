@@ -4,7 +4,7 @@ import api, { getCsrfCookie } from "../api/axios";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState("test");
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -13,10 +13,10 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
       try {
         if (token) {
-          // const { data } = await api.get("/user");
-          // setUser({
-          //   user: data,
-          // });
+          const { data } = await api.get("/user");
+          setUser({
+            user: data,
+          });
           setIsAuthenticated(true);
         }
       } catch (err) {

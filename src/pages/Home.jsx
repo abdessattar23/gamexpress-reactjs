@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
-
+  console.log(user);
   const features = [
     {
       icon: <SportsEsports sx={{ fontSize: 40 }} />,
