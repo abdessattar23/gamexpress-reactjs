@@ -1,184 +1,68 @@
-import { Box, Typography, Button, Paper, Chip, Tooltip } from "@mui/material";
 import { Link } from "react-router-dom";
-import { ShoppingCart } from "@mui/icons-material";
 
 const ProductCard = ({ product }) => {
   const defaultImage = "https://placehold.co/300x300/6366f1/fff?text=GameXpress";
+
 
   const primaryImage = product.images.find(img => img.is_primary === 1);
   const firstImage = product.images[0];
   const imageUrl = primaryImage?.image_url || firstImage?.image_url;
   
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        height: '380px', 
-        width: '100%',
-        maxWidth: '300px', 
-        minWidth: '300px', 
-        margin: '0 auto', 
-        borderRadius: 2,
-        overflow: 'hidden',
-        border: '1px solid',
-        borderColor: 'divider',
-        transition: 'all 0.3s ease',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        backgroundColor: 'background.paper',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-          '& .product-image': {
-            transform: 'scale(1.05)',
-          }
-        }
-      }}
-    >
-      {/* Image Container - EXACT fixed height */}
-      <Box 
-        sx={{ 
-          position: 'relative',
-          height: '200px', 
-          width: '100%',
-          overflow: 'hidden',
-          backgroundColor: '#f0f1f7'
-        }}
-      >
-        <Box
-          className="product-image"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundImage: `url(${imageUrl ? `http://localhost:8000/storage/${imageUrl}` : defaultImage})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            transition: 'transform 0.5s ease',
-          }}
-        />
+    <div className="w-[300px] h-[380px] mx-auto bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+      <div className="relative h-[200px] w-full bg-gray-50 overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-no-repeat bg-center bg-contain transition-transform duration-500 ease-in-out hover:scale-105"
+          style={{ backgroundImage: `url(${imageUrl ? `http://localhost:8000/storage/${imageUrl}` : defaultImage})` }}
+        ></div>
         
-        {/* Price Tag */}
-        <Chip
-          label={`$${product.price}`}
-          color="primary"
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            fontWeight: 'bold',
-            fontSize: '0.85rem',
-            height: '26px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}
-        />
+
+        <div className="absolute top-3 right-3 bg-indigo-600 text-white px-2 py-1 rounded-md text-sm font-bold shadow-md">
+          ${product.price}
+        </div>
         
-        {/* Status Badge - Show only if stock is low */}
         {product.stock <= 10 && (
-          <Chip
-            label={`Only ${product.stock} left`}
-            color="error"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              fontSize: '0.75rem',
-              height: '26px'
-            }}
-          />
+          <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-md text-xs">
+            Only {product.stock} left
+          </div>
         )}
-      </Box>
-      
-      {/* Content - EXACT fixed height */}
-      <Box sx={{ 
-        p: 2,
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: '160px', 
-        justifyContent: 'space-between'
-      }}>
-        {/* Title section - Fixed height */}
-        <Box sx={{ height: '100px' }}>
-          <Tooltip title={product.name}>
-            <Typography
-              variant="h6"
-              component="h3"
-              sx={{
-                fontWeight: 600,
-                mb: 1,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                height: '32px' 
-              }}
-            >
-              {product.name}
-            </Typography>
-          </Tooltip>
-          
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{
-              fontSize: '0.9rem',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: '3',
-              WebkitBoxOrient: 'vertical',
-              lineHeight: 1.4,
-              height: '68px', 
-            }}
+      </div>
+
+      <div className="p-4 h-[180px] flex flex-col justify-between">
+
+        <div className="h-[100px]">
+          <h3 
+            className="text-lg font-semibold mb-2 truncate h-8" 
+            title={product.name}
           >
+            {product.name}
+          </h3>
+          
+          <p className="text-gray-600 text-sm h-[4.2em] overflow-hidden line-clamp-3">
             {product.description}
-          </Typography>
-        </Box>
+          </p>
+        </div>
         
-        {/* Action Buttons - Fixed height */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          gap: 1.5, 
-          pt: 1.5,
-          height: '44px', 
-          borderTop: '1px solid',
-          borderColor: 'divider'
-        }}>
-          <Button
-            component={Link}
+
+        <div className="flex justify-between gap-4 pt-4 border-t border-gray-200">
+          <Link 
             to={`/products/${product.id}`}
-            variant="outlined"
-            size="medium"
-            sx={{
-              fontSize: '0.85rem',
-              py: 0.75,
-              minWidth: 0,
-              flex: 1
-            }}
+            className="flex-1 py-2 px-4 bg-white border border-indigo-600 text-indigo-600 rounded-md text-center text-sm font-medium hover:bg-indigo-50 transition-colors"
           >
             Details
-          </Button>
-          <Button
-            variant="contained"
-            size="medium"
-            startIcon={<ShoppingCart sx={{ fontSize: '1.1rem' }} />}
-            sx={{
-              fontSize: '0.85rem',
-              py: 0.75,
-              flex: 1
-            }}
+          </Link>
+          
+          <button 
+            className="flex-1 py-2 px-4 bg-indigo-600 text-white rounded-md text-sm font-medium flex items-center justify-center gap-1 hover:bg-indigo-700 transition-colors"
           >
-            Add
-          </Button>
-        </Box>
-      </Box>
-    </Paper>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span>Add</span>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
