@@ -8,9 +8,6 @@ import {
   Paper,
   Chip,
   Button,
-  CircularProgress,
-  ImageList,
-  ImageListItem,
   Card,
   Divider,
   Rating,
@@ -21,9 +18,9 @@ import {
   LocalShipping,
   Storefront,
   Security,
-  Info,
 } from "@mui/icons-material";
 import api from "../../api/axios";
+import Loader from "../../components/Loader";
 
 const API_BASE_URL = "http://localhost:8000";
 
@@ -38,14 +35,17 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProductDetails = async () => {
       setLoading(true);
+      setError(null);
       try {
         const response = await api.get(`/products/${id}`);
-        setProduct(response.data);
+        const productData = response.data;
+        setProduct(productData);
 
-        if (response.data.category_id) {
+        // Fetch category if category_id exists
+        if (productData.category_id) {
           try {
             const categoryResponse = await api.get(
-              `/v1/admin/categories/${response.data.category_id}`
+              `/v1/admin/categories/${productData.category_id}`
             );
             setCategory(categoryResponse.data.data);
           } catch (categoryErr) {
@@ -53,13 +53,16 @@ const ProductDetail = () => {
           }
         }
 
-        if (response.data.images && response.data.images.length > 0) {
-          const imageUrl = response.data.images[0].image_url;
+        // Set initial selected image
+        if (productData.images && productData.images.length > 0) {
+          const firstImageUrl = productData.images[0].image_url;
           setSelectedImage(
-            imageUrl.startsWith("http")
-              ? imageUrl
-              : `${API_BASE_URL}/${imageUrl}`
+            firstImageUrl.startsWith("http")
+              ? firstImageUrl
+              : `${API_BASE_URL}/storage/${firstImageUrl}`
           );
+        } else {
+          setSelectedImage("/placeholder-image.jpg");
         }
       } catch (err) {
         console.error("Error fetching product details:", err);
@@ -82,22 +85,13 @@ const ProductDetail = () => {
   };
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Loader />;
   }
 
   if (error) {
     return (
       <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
+        <Box sx={{ my: 4, textAlign: "center" }}>
           <Typography color="error" variant="h6" gutterBottom>
             {error}
           </Typography>
@@ -112,7 +106,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
+        <Box sx={{ my: 4, textAlign: "center" }}>
           <Typography variant="h6" gutterBottom>
             Product not found
           </Typography>
@@ -142,8 +136,19 @@ const ProductDetail = () => {
     },
   ];
 
+  // Process images for consistent display
+  const processedImages =
+    product.images && product.images.length > 0
+      ? product.images.map((image) => ({
+          url: image.image_url.startsWith("http")
+            ? image.image_url
+            : `${API_BASE_URL}/storage/${image.image_url}`,
+        }))
+      : [{ url: "/placeholder-image.jpg" }];
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Back Button */}
       <Button
         component={Link}
         to="/products"
@@ -161,106 +166,119 @@ const ProductDetail = () => {
       </Button>
 
       <Card
-        elevation={0}
+        elevation={1}
         sx={{
           borderRadius: 2,
-          border: 1,
-          borderColor: "divider",
           overflow: "hidden",
         }}
       >
-        <Grid container spacing={4}>
-          {/* Product Images */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3 }}>
-              <Paper
-                elevation={0}
+        <Grid container>
+          {/* Left Column: Product Images */}
+          <Grid
+            item
+            xs={24}
+            md={24}
+            sx={{
+              borderRight: { md: "1px solid" },
+              borderColor: { md: "divider" },
+              bgcolor: "grey.50",
+              width: "100%",
+            }}
+          >
+            <Box sx={{ p: 3, display: "flex", flexDirection: "column" }}>
+              {/* Main Image Display - Fixed height to prevent layout shifts */}
+              <Box
                 sx={{
-                  p: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  borderRadius: 2,
-                  bgcolor: "grey.50",
+                  height: { xs: 350, md: 450 },
+                  width: "100%",
+                  bgcolor: "white", // Keep background color for empty space
+                  borderRadius: 1,
+                  mb: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  overflow: "hidden",
+                  backgroundImage: `url(${
+                    selectedImage || "/placeholder-image.jpg"
+                  })`,
+                  backgroundSize: "contain",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
                 }}
               >
+                {/* No child img element needed here anymore */}
+              </Box>
+
+              {/* Thumbnail Images - Fixed height row */}
+              {processedImages.length > 1 && (
                 <Box
-                  component="img"
-                  src={selectedImage || "/placeholder-image.jpg"}
-                  alt={product.name}
                   sx={{
-                    width: "100%",
-                    height: 400,
-                    objectFit: "contain",
-                    mb: 2,
-                    borderRadius: 1,
+                    height: 80,
+                    display: "flex",
+                    justifyContent: "center",
+                    mb: 1,
                   }}
-                />
-                {product.images && product.images.length > 0 && (
-                  <ImageList
-                    sx={{
-                      width: "100%",
-                      maxHeight: 100,
-                      gridTemplateColumns:
-                        "repeat(auto-fill, minmax(80px, 1fr))!important",
-                      gap: "8px!important",
-                    }}
+                >
+                  <Grid
+                    container
+                    spacing={1}
+                    justifyContent="center"
+                    sx={{ maxWidth: 500 }}
                   >
-                    {product.images.map((image, index) => (
-                      <ImageListItem
-                        key={index}
-                        onClick={() =>
-                          setSelectedImage(
-                            image.image_url.startsWith("http")
-                              ? image.image_url
-                              : `${API_BASE_URL}/storage/${image.image_url}`
-                          )
-                        }
-                        sx={{
-                          cursor: "pointer",
-                          border:
-                            selectedImage ===
-                            (image.image_url.startsWith("http")
-                              ? image.image_url
-                              : `${API_BASE_URL}/storage/${image.image_url}`)
-                              ? 2
-                              : 1,
-                          borderColor:
-                            selectedImage ===
-                            (image.image_url.startsWith("http")
-                              ? image.image_url
-                              : `${API_BASE_URL}/storage/${image.image_url}`)
-                              ? "primary.main"
-                              : "divider",
-                          borderRadius: 1,
-                          overflow: "hidden",
-                        }}
-                      >
-                        <img
-                          src={
-                            image.image_url.startsWith("http")
-                              ? image.image_url
-                              : `${API_BASE_URL}/storage/${image.image_url}`
-                          }
-                          alt={`${product.name} - ${index}`}
-                          loading="lazy"
-                          style={{
+                    {processedImages.map((image, index) => (
+                      <Grid item key={index} xs={2} sm={2}>
+                        <Box
+                          onClick={() => setSelectedImage(image.url)}
+                          sx={{
+                            cursor: "pointer",
+                            height: 70,
                             width: "100%",
-                            height: "80px",
-                            objectFit: "cover",
+                            borderRadius: 1,
+                            p: 0.5,
+                            border:
+                              selectedImage === image.url
+                                ? "2px solid"
+                                : "1px solid",
+                            borderColor:
+                              selectedImage === image.url
+                                ? "primary.main"
+                                : "divider",
+                            bgcolor: "white",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            "&:hover": {
+                              borderColor: "primary.light",
+                            },
                           }}
-                        />
-                      </ImageListItem>
+                        >
+                          <Box
+                            component="img"
+                            src={image.url}
+                            alt={`${product.name} thumbnail`}
+                            sx={{
+                              maxHeight: "100%",
+                              maxWidth: "100%",
+                              objectFit: "contain",
+                              opacity: selectedImage === image.url ? 1 : 0.7,
+                              transition: "opacity 0.2s",
+                              "&:hover": {
+                                opacity: 1,
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Grid>
                     ))}
-                  </ImageList>
-                )}
-              </Paper>
+                  </Grid>
+                </Box>
+              )}
             </Box>
           </Grid>
 
-          {/* Product Info */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ p: 3 }}>
+          {/* Right Column: Product Information */}
+          <Grid item xs={12} md={5}>
+            <Box sx={{ p: 3, height: "100%", width: "100%" }}>
+              {/* Product Name */}
               <Typography
                 variant="h4"
                 component="h1"
@@ -270,57 +288,72 @@ const ProductDetail = () => {
                 {product.name}
               </Typography>
 
+              {/* Rating and Reviews */}
               <Box
-                sx={{ display: "flex", alignItems: "center", mb: 2, gap: 2 }}
+                sx={{ display: "flex", alignItems: "center", mb: 2, gap: 1 }}
               >
-                <Rating value={4.5} readOnly precision={0.5} />
+                <Rating
+                  name="read-only"
+                  value={4.5}
+                  readOnly
+                  precision={0.5}
+                  size="small"
+                />
                 <Typography variant="body2" color="text.secondary">
                   (24 reviews)
                 </Typography>
               </Box>
 
+              {/* Price */}
               <Typography
                 variant="h4"
                 color="primary"
-                sx={{
-                  mb: 3,
-                  fontWeight: 600,
-                }}
+                sx={{ mb: 3, fontWeight: 600 }}
               >
                 {formatCurrency(product.price)}
               </Typography>
 
-              <Box sx={{ mb: 3 }}>
+              {/* Stock Status and Quantity */}
+              <Box
+                sx={{ mb: 3, display: "flex", gap: 1, alignItems: "center" }}
+              >
                 <Chip
                   label={
                     product.status === "available" ? "In Stock" : "Out of Stock"
                   }
                   color={product.status === "available" ? "success" : "error"}
-                  sx={{ mr: 1 }}
+                  size="small"
                 />
-                <Chip
-                  label={`${product.stock} units available`}
-                  variant="outlined"
-                  color="primary"
-                />
+                {product.status === "available" && (
+                  <Chip
+                    label={`${product.stock} units left`}
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
               </Box>
 
               <Divider sx={{ my: 3 }} />
 
+              {/* Category */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                  Category
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 600, mb: 0.5 }}
+                >
+                  Category:
                 </Typography>
-                <Typography variant="body1">
-                  {category ? category.name : "Uncategorized"}
+                <Typography variant="body2">
+                  {category ? category.name : "Loading category..."}
                 </Typography>
               </Box>
 
+              {/* Add to Cart Button */}
               <Button
                 variant="contained"
                 size="large"
                 startIcon={<ShoppingCart />}
-                disabled={product.status !== "available"}
+                disabled={product.status !== "available" || loading}
                 fullWidth
                 sx={{
                   py: 1.5,
@@ -334,6 +367,7 @@ const ProductDetail = () => {
                 Add to Cart
               </Button>
 
+              {/* Features Section */}
               <Grid container spacing={2}>
                 {features.map((feature, index) => (
                   <Grid item xs={12} sm={4} key={index}>
@@ -345,6 +379,7 @@ const ProductDetail = () => {
                         border: 1,
                         borderColor: "divider",
                         borderRadius: 2,
+                        height: "100%",
                       }}
                     >
                       <Box sx={{ color: "primary.main", mb: 1 }}>

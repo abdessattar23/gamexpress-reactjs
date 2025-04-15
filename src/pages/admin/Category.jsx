@@ -30,6 +30,7 @@ import {
 } from "@mui/icons-material";
 import api from "../../api/axios";
 import * as yup from "yup";
+import Loader from "../../components/Loader";
 
 const categorySchema = yup.object().shape({
   name: yup
@@ -212,14 +213,7 @@ const Category = () => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
-        <CircularProgress />
-      </Box>
+      <Loader />
     );
   }
 

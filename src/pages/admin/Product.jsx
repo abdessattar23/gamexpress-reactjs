@@ -25,6 +25,9 @@ import {
   CircularProgress,
   IconButton,
   Chip,
+  Modal, // Import Modal
+  Fade, // Optional: for modal transition
+  Backdrop, // Optional: for modal backdrop
 } from "@mui/material";
 import {
   Add,
@@ -34,6 +37,7 @@ import {
   Visibility,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import Loader from "../../components/Loader";
 
 const API_URL = "/products";
 const CATEGORIES_URL = "/v1/admin/categories";
@@ -66,6 +70,7 @@ const Product = () => {
   const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
   const [productImages, setProductImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -136,6 +141,7 @@ const Product = () => {
         setIsEditing(false);
         setCurrentProductId(null);
         fetchProducts();
+        handleCloseModal(); // Close modal on successful submit
       } catch (error) {
         console.error("Erreur lors de la soumission:", error);
         toast.error(
@@ -195,6 +201,30 @@ const Product = () => {
     }
   };
 
+  const handleOpenModal = (mode = "add", productId = null) => {
+    if (mode === "edit" && productId) {
+      handleEdit(productId); // Fetch data first
+    } else {
+      // Reset form for adding
+      formik.resetForm();
+      setImageFiles([]);
+      setProductImages([]);
+      setIsEditing(false);
+      setCurrentProductId(null);
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    // Optionally reset form state when closing modal if not submitting
+    formik.resetForm();
+    setImageFiles([]);
+    setProductImages([]);
+    setIsEditing(false);
+    setCurrentProductId(null);
+  };
+
   const handleEdit = async (productId) => {
     try {
       const response = await api.get(`${API_URL}/${productId}`);
@@ -207,9 +237,10 @@ const Product = () => {
         stock: product.stock,
         status: product.status,
         category_id: product.category_id,
-        description: product.description,
+        description: product.description || "", // Ensure description is handled
       });
 
+      setImageFiles([]); // Clear new files when editing
       if (product.images && product.images.length > 0) {
         const processedImages = product.images.map((img) => ({
           ...img,
@@ -218,10 +249,13 @@ const Product = () => {
             : `${API_BASE_URL}/storage/${img.image_url}`,
         }));
         setProductImages(processedImages);
+      } else {
+        setProductImages([]); // Ensure productImages is reset if no images
       }
 
       setIsEditing(true);
       setCurrentProductId(productId);
+      setIsModalOpen(true); // Open modal after setting values
     } catch (error) {
       console.error("Erreur lors de la récupération du produit:", error);
       toast.error("Impossible de charger les détails du produit");
@@ -315,16 +349,7 @@ const Product = () => {
   };
 
   if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Loader />;
   }
 
   return (
@@ -337,221 +362,276 @@ const Product = () => {
           mb={4}
         >
           <Typography variant="h4" component="h1" gutterBottom>
-            {isEditing ? "Modifier un produit" : "Ajouter un produit"}
+            Gestion des Produits
           </Typography>
+          {/* Button to open the Add Product modal */}
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => handleOpenModal("add")} // Open modal in add mode
+          >
+            Ajouter un produit
+          </Button>
         </Box>
 
-        {/* Formulaire pour ajouter/modifier un produit */}
-        <Paper sx={{ p: 3, mb: 4 }}>
-          <Box component="form" onSubmit={formik.handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="name"
-                  name="name"
-                  label="Nom"
-                  value={formik.values.name}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.name && Boolean(formik.errors.name)}
-                  helperText={formik.touched.name && formik.errors.name}
-                  margin="normal"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="slug"
-                  name="slug"
-                  label="Slug"
-                  value={formik.values.slug}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.slug && Boolean(formik.errors.slug)}
-                  helperText={formik.touched.slug && formik.errors.slug}
-                  margin="normal"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="description"
-                  name="description"
-                  label="Description"
-                  value={formik.values.description}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={
-                    formik.touched.description &&
-                    Boolean(formik.errors.description)
-                  }
-                  helperText={
-                    formik.touched.description && formik.errors.description
-                  }
-                  margin="normal"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="price"
-                  name="price"
-                  label="Prix"
-                  type="number"
-                  value={formik.values.price}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.price && Boolean(formik.errors.price)}
-                  helperText={formik.touched.price && formik.errors.price}
-                  margin="normal"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  id="stock"
-                  name="stock"
-                  label="Stock"
-                  type="number"
-                  value={formik.values.stock}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.stock && Boolean(formik.errors.stock)}
-                  helperText={formik.touched.stock && formik.errors.stock}
-                  margin="normal"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="status-label">Statut</InputLabel>
-                  <Select
-                    labelId="status-label"
-                    id="status"
-                    name="status"
-                    value={formik.values.status}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={
-                      formik.touched.status && Boolean(formik.errors.status)
-                    }
-                    label="Statut"
-                  >
-                    <MenuItem value="available">Disponible</MenuItem>
-                    <MenuItem value="out_of_stock">Rupture de stock</MenuItem>
-                  </Select>
-                  {formik.touched.status && formik.errors.status && (
-                    <Typography color="error" variant="caption">
-                      {formik.errors.status}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal">
-                  <InputLabel id="category-label">Catégorie</InputLabel>
-                  <Select
-                    labelId="category-label"
-                    id="category_id"
-                    name="category_id"
-                    value={formik.values.category_id}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={
-                      formik.touched.category_id &&
-                      Boolean(formik.errors.category_id)
-                    }
-                    label="Catégorie"
-                  >
-                    <MenuItem value="">
-                      <em>Sélectionnez une catégorie</em>
-                    </MenuItem>
-                    {categories.map((category) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        {category.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formik.touched.category_id && formik.errors.category_id && (
-                    <Typography color="error" variant="caption">
-                      {formik.errors.category_id}
-                    </Typography>
-                  )}
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
-                  Images du produit
-                </Typography>
-                <Paper
-                  {...getRootProps()}
-                  variant="outlined"
-                  sx={{
-                    p: 3,
-                    textAlign: "center",
-                    cursor: "pointer",
-                    bgcolor: "background.paper",
-                    "&:hover": { bgcolor: "grey.50" },
-                  }}
-                >
-                  <input {...getInputProps()} />
-                  <CloudUpload color="primary" sx={{ fontSize: 40, mb: 2 }} />
-                  <Typography>
-                    Glissez-déposez des images ici, ou cliquez pour sélectionner
-                    des fichiers
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    Formats acceptés: JPG, JPEG, PNG, GIF (max: 2MB)
-                  </Typography>
-                </Paper>
-
-                {/* Affichage des miniatures d'images */}
-                {(imageFiles.length > 0 || productImages.length > 0) &&
-                  renderThumbnails()}
-              </Grid>
-            </Grid>
-
-            <Box sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}>
-              {isEditing && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditing(false);
-                    setCurrentProductId(null);
-                    setImageFiles([]);
-                    setProductImages([]);
-                  }}
-                  sx={{ mr: 2 }}
-                >
-                  Annuler
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={isLoading}
+        {/* Modal for Add/Edit Form */}
+        <Modal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          closeAfterTransition
+          aria-labelledby="product-modal-title"
+          aria-describedby="product-modal-description"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Fade in={isModalOpen}>
+            {/* Formulaire pour ajouter/modifier un produit */}
+            <Paper
+              sx={{
+                p: 3,
+                // mb: 4, // Removed margin bottom
+                width: "80%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                borderRadius: 2,
+                outline: "none", // Add outline none for accessibility focus ring handling
+              }}
+            >
+              <Typography
+                variant="h5"
+                component="h2"
+                gutterBottom
+                id="product-modal-title"
               >
-                {isLoading
-                  ? "Chargement..."
-                  : isEditing
-                  ? "Mettre à jour"
-                  : "Ajouter"}
-              </Button>
-            </Box>
-          </Box>
-        </Paper>
+                {isEditing ? "Modifier un produit" : "Ajouter un produit"}
+              </Typography>
+              <Box component="form" onSubmit={formik.handleSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      id="name"
+                      name="name"
+                      label="Nom"
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={formik.touched.name && Boolean(formik.errors.name)}
+                      helperText={formik.touched.name && formik.errors.name}
+                      margin="normal"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      id="slug"
+                      name="slug"
+                      label="Slug"
+                      value={formik.values.slug}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={formik.touched.slug && Boolean(formik.errors.slug)}
+                      helperText={formik.touched.slug && formik.errors.slug}
+                      margin="normal"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      id="description"
+                      name="description"
+                      label="Description"
+                      multiline // Make description multiline if needed
+                      rows={3} // Adjust rows as needed
+                      value={formik.values.description}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.description &&
+                        Boolean(formik.errors.description)
+                      }
+                      helperText={
+                        formik.touched.description && formik.errors.description
+                      }
+                      margin="normal"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      id="price"
+                      name="price"
+                      label="Prix"
+                      type="number"
+                      value={formik.values.price}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.price && Boolean(formik.errors.price)
+                      }
+                      helperText={formik.touched.price && formik.errors.price}
+                      margin="normal"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      id="stock"
+                      name="stock"
+                      label="Stock"
+                      type="number"
+                      value={formik.values.stock}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.stock && Boolean(formik.errors.stock)
+                      }
+                      helperText={formik.touched.stock && formik.errors.stock}
+                      margin="normal"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel id="status-label">Statut</InputLabel>
+                      <Select
+                        labelId="status-label"
+                        id="status"
+                        name="status"
+                        value={formik.values.status}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={
+                          formik.touched.status && Boolean(formik.errors.status)
+                        }
+                        label="Statut"
+                      >
+                        <MenuItem value="available">Disponible</MenuItem>
+                        <MenuItem value="out_of_stock">
+                          Rupture de stock
+                        </MenuItem>
+                      </Select>
+                      {formik.touched.status && formik.errors.status && (
+                        <Typography color="error" variant="caption">
+                          {formik.errors.status}
+                        </Typography>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel id="category-label">Catégorie</InputLabel>
+                      <Select
+                        labelId="category-label"
+                        id="category_id"
+                        name="category_id"
+                        value={formik.values.category_id}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={
+                          formik.touched.category_id &&
+                          Boolean(formik.errors.category_id)
+                        }
+                        label="Catégorie"
+                      >
+                        <MenuItem value="">
+                          <em>Sélectionnez une catégorie</em>
+                        </MenuItem>
+                        {categories.map((category) => (
+                          <MenuItem key={category.id} value={category.id}>
+                            {category.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {formik.touched.category_id &&
+                        formik.errors.category_id && (
+                          <Typography color="error" variant="caption">
+                            {formik.errors.category_id}
+                          </Typography>
+                        )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                      Images du produit
+                    </Typography>
+                    <Paper
+                      {...getRootProps()}
+                      variant="outlined"
+                      sx={{
+                        p: 3,
+                        textAlign: "center",
+                        cursor: "pointer",
+                        bgcolor: "background.paper",
+                        "&:hover": { bgcolor: "grey.50" },
+                      }}
+                    >
+                      <input {...getInputProps()} />
+                      <CloudUpload
+                        color="primary"
+                        sx={{ fontSize: 40, mb: 2 }}
+                      />
+                      <Typography>
+                        Glissez-déposez des images ici, ou cliquez pour
+                        sélectionner des fichiers
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        Formats acceptés: JPG, JPEG, PNG, GIF (max: 2MB)
+                      </Typography>
+                    </Paper>
+
+                    {/* Affichage des miniatures d'images */}
+                    {(imageFiles.length > 0 || productImages.length > 0) &&
+                      renderThumbnails()}
+                  </Grid>
+                </Grid>
+
+                <Box
+                  sx={{ mt: 4, display: "flex", justifyContent: "flex-end" }}
+                >
+                  {/* Cancel button inside the modal */}
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleCloseModal} // Use handleCloseModal for cancel
+                    sx={{ mr: 2 }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <CircularProgress size={24} /> // Show loader in button
+                    ) : isEditing ? (
+                      "Mettre à jour"
+                    ) : (
+                      "Ajouter"
+                    )}
+                  </Button>
+                </Box>
+              </Box>
+            </Paper>
+          </Fade>
+        </Modal>
 
         {/* Tableau des produits existants */}
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
+          {" "}
+          {/* Added margin top */}
           Liste des produits
         </Typography>
         <TableContainer component={Paper}>
@@ -600,7 +680,7 @@ const Product = () => {
                       </IconButton>
                       <IconButton
                         color="primary"
-                        onClick={() => handleEdit(product.id)}
+                        onClick={() => handleOpenModal("edit", product.id)} // Open modal in edit mode
                         size="small"
                       >
                         <Edit />
