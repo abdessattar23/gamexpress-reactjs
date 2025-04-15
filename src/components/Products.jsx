@@ -90,13 +90,13 @@ const Products = () => {
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{ mb: 3 }}
-          // InputProps={{
-          //   startAdornment: (
-          //     <InputAdornment position="start">
-          //       <Search />
-          //     </InputAdornment>
-          //   ),
-          // }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
         />
       </Box>
 
