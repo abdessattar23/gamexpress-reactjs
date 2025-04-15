@@ -2,6 +2,7 @@ import { Box, Container, Typography, Button, Paper, Grid } from "@mui/material";
 import { SportsEsports, ShoppingCart, Security } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import Products from "../components/Products";
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
@@ -158,6 +159,9 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
+
+      {/* Products Section */}
+      <Products />
     </Box>
   );
 };
