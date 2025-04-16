@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { AuthProvider } from "./context/AuthContext";
+import { ProductProvider } from "./context/ProductContext";
+import { CartProvider } from "./context/CartContext";
 import theme from "./theme/theme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthRoute from "./components/AuthRoute";
@@ -22,43 +24,46 @@ function App() {
       <CssBaseline />
       <Router>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
+          <ProductProvider>
+            <CartProvider>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Home />} />
 
-              <Route element={<AuthRoute />}>
-                <Route path="login" element={<Login />} />
-                <Route path="register" element={<Register />} />
-              </Route>
+                  <Route element={<AuthRoute />}>
+                    <Route path="login" element={<Login />} />
+                    <Route path="register" element={<Register />} />
+                  </Route>
 
-              <Route path="unauthorized" element={<Unauthorized />} />
-              <Route path="checkout" element={<Checkout />} />
+                  <Route path="unauthorized" element={<Unauthorized />} />
 
-              {/* Product detail route - public */}
-              <Route path="products/:id" element={<ProductDetail />} />
+                  {/* Product detail route - public */}
+                  <Route path="products/:id" element={<ProductDetail />} />
 
-              {/* Protected routes */}
-              <Route
-                element={
-                  <ProtectedRoute roles={["product_manager", "super_admin"]} />
-                }
-              >
-                <Route path="dashboard" element={<Dashboard />} />
-              </Route>
+                  {/* Protected routes */}
+                  <Route
+                    element={
+                      <ProtectedRoute roles={["product_manager", "super_admin"]} />
+                    }
+                  >
+                    <Route path="dashboard" element={<Dashboard />} />
+                  </Route>
 
-              <Route element={<ProtectedRoute roles={["super_admin"]} />}>
-                <Route path="categories" element={<Category />} />
-              </Route>
+                  <Route element={<ProtectedRoute roles={["super_admin"]} />}>
+                    <Route path="categories" element={<Category />} />
+                  </Route>
 
-              <Route
-                element={
-                  <ProtectedRoute roles={["product_manager", "super_admin"]} />
-                }
-              >
-                <Route path="products" element={<Product />} />
-              </Route>
-            </Route>
-          </Routes>
+                  <Route
+                    element={
+                      <ProtectedRoute roles={["product_manager", "super_admin"]} />
+                    }
+                  >
+                    <Route path="products" element={<Product />} />
+                  </Route>
+                </Route>
+              </Routes>
+            </CartProvider>
+          </ProductProvider>
         </AuthProvider>
       </Router>
     </ThemeProvider>
