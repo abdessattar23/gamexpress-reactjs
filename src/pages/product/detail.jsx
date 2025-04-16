@@ -277,7 +277,16 @@ const ProductDetail = () => {
 
           {/* Right Column: Product Information */}
           <Grid item xs={12} md={5}>
-            <Box sx={{ p: 3, height: "100%", width: "100%" }}>
+            <Box
+              sx={{
+                p: 3,
+                height: "100%",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
               {/* Product Name */}
               <Typography
                 variant="h4"

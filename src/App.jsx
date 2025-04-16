@@ -14,6 +14,7 @@ import Layout from "./components/Layout";
 import Category from "./pages/admin/Category";
 import Product from "./pages/admin/Product";
 import ProductDetail from "./pages/product/detail";
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               </Route>
 
               <Route path="unauthorized" element={<Unauthorized />} />
+              <Route path="checkout" element={<Checkout />} />
 
               {/* Product detail route - public */}
               <Route path="products/:id" element={<ProductDetail />} />
