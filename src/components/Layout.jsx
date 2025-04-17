@@ -1,5 +1,6 @@
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import {
   AppBar,
   Toolbar,
@@ -14,15 +15,23 @@ import {
   ListItemText,
   useMediaQuery,
   useTheme,
+  Badge,
 } from "@mui/material";
-import { Menu as MenuIcon } from "@mui/icons-material";
+import { Menu as MenuIcon, ShoppingCart } from "@mui/icons-material";
 import { useState } from "react";
 
 const Layout = () => {
   const { isAuthenticated, logout } = useAuth();
+  const { cart, cartItemCount } = useCart();
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Only use this if cartItemCount from context is not available
+  const fallbackCartItemCount = Array.isArray(cart) ? cart.length : 0;
+  
+  // Use cartItemCount from context if available, otherwise use fallback
+  const displayCartItemCount = typeof cartItemCount === 'number' ? cartItemCount : fallbackCartItemCount;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -56,6 +65,18 @@ const Layout = () => {
             />
           </ListItem>
         ))}
+        <ListItem component={Link} to="/cart">
+          <ListItemText 
+            primary="Cart" 
+            sx={{
+              color: "text.primary",
+              "& span": { fontWeight: 500 },
+            }}
+          />
+          {displayCartItemCount > 0 && (
+            <Badge badgeContent={displayCartItemCount} color="primary" sx={{ ml: 1 }} />
+          )}
+        </ListItem>
         {isAuthenticated && (
           <ListItem button onClick={logout}>
             <ListItemText primary="Logout" sx={{ color: "error.main" }} />
@@ -93,16 +114,28 @@ const Layout = () => {
             </Typography>
 
             {isMobile ? (
-              <IconButton
-                color="primary"
-                aria-label="open drawer"
-                edge="end"
-                onClick={handleDrawerToggle}
-              >
-                <MenuIcon />
-              </IconButton>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <IconButton
+                  component={Link}
+                  to="/cart"
+                  color="primary"
+                  sx={{ mr: 1 }}
+                >
+                  <Badge badgeContent={displayCartItemCount} color="primary">
+                    <ShoppingCart />
+                  </Badge>
+                </IconButton>
+                <IconButton
+                  color="primary"
+                  aria-label="open drawer"
+                  edge="end"
+                  onClick={handleDrawerToggle}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </Box>
             ) : (
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 {navItems.map((item) => (
                   <Button
                     key={item.text}
@@ -119,6 +152,16 @@ const Layout = () => {
                     {item.text}
                   </Button>
                 ))}
+                <IconButton
+                  component={Link}
+                  to="/cart"
+                  color="primary"
+                  sx={{ ml: 1 }}
+                >
+                  <Badge badgeContent={displayCartItemCount} color="primary">
+                    <ShoppingCart />
+                  </Badge>
+                </IconButton>
                 {isAuthenticated && (
                   <Button
                     onClick={logout}

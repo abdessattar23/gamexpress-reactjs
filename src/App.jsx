@@ -17,6 +17,7 @@ import Category from "./pages/admin/Category";
 import Product from "./pages/admin/Product";
 import ProductDetail from "./pages/product/detail";
 import Checkout from "./pages/Checkout";
+import Cart from "./pages/Cart";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
 
                   <Route path="unauthorized" element={<Unauthorized />} />
                   <Route path="checkout" element={<Checkout />} />
+                  <Route path="cart" element={<Cart />} />
 
                   {/* Product detail route - public */}
                   <Route path="products/:id" element={<ProductDetail />} />
