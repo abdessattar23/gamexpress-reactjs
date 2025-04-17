@@ -15,15 +15,31 @@ export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCart();
-    }
-  }, [isAuthenticated]);
+    const getCartItems = async () => {
+      if (isAuthenticated) {
+        fetchCart();
+      } else {
+        if (localStorage.getItem("session_id")) {
+          const response = await api.get("/v2/cart/items", {
+            params: {
+              session_id: localStorage.getItem("session_id"),
+            },
+          });
+          setCart(response.data.cart || []);
+        } else {
+          setCart([]);
+        }
+      }
+    };
+
+    getCartItems();
+  }, []);
 
   const fetchCart = async () => {
     try {
       setLoading(true);
       const response = await api.get("/v2/cart/items");
+      console.log(response);
       setCart(response.data.cart || []);
       setError(null);
     } catch (err) {
@@ -33,33 +49,60 @@ export const CartProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  // const cartTotal = cart.reduce((total, item) => {
+  //   return total + parseFloat(item.product.price) * item.quantity;
+  // }, 0);
 
+  // const cartItemCount = cart.reduce((count, item) => {
+  //   return count + item.quantity;
+  // }, 0);
 
-  const cartTotal = cart.reduce((total, item) => {
-    return total + (parseFloat(item.price) * item.quantity);
-  }, 0);
+  const addToCart = async (product, id, quantity) => {
+    if (!isAuthenticated) {
+      const updatedCart = [...cart, product];
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+      if (!localStorage.getItem("session_id")) {
+        const response = await api.post("/v2/cart/add", {
+          product_id: id,
+          quantity: quantity,
+        });
 
- 
-  const cartItemCount = cart.reduce((count, item) => {
-    return count + item.quantity;
-  }, 0);
+        if (response.data.session_id) {
+          localStorage.setItem("session_id", response.data.session_id);
+        }
+      } else {
+        const response = await api.post("/v2/cart/add", {
+          product_id: id,
+          quantity: quantity,
+          session_id: localStorage.getItem("session_id"),
+        });
+      }
+      setCart(updatedCart);
+      return;
+    } else {
+      try {
+        const response = await api.post("/v2/cart/add", {
+          product_id: id,
+          quantity: quantity,
+        });
+        setCart((prevCart) => [...prevCart, response.data.cart]);
+      } catch (error) {
+        console.error("Failed to add item to cart:", error);
+      }
+    }
+  };
 
   const value = {
     cart,
     loading,
     error,
-    cartTotal,
-    cartItemCount,
-    fetchCart
+    // cartTotal,
+    // cartItemCount,
+    fetchCart,
+    addToCart,
   };
 
-return (
-  <CartContext.Provider value={value}>
-    {children}
-  </CartContext.Provider>
-);
-
-
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
-export default CartContext; 
+export default CartContext;

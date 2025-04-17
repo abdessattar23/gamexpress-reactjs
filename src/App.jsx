@@ -36,6 +36,7 @@ function App() {
                   </Route>
 
                   <Route path="unauthorized" element={<Unauthorized />} />
+                  <Route path="checkout" element={<Checkout />} />
 
                   {/* Product detail route - public */}
                   <Route path="products/:id" element={<ProductDetail />} />
@@ -43,7 +44,9 @@ function App() {
                   {/* Protected routes */}
                   <Route
                     element={
-                      <ProtectedRoute roles={["product_manager", "super_admin"]} />
+                      <ProtectedRoute
+                        roles={["product_manager", "super_admin"]}
+                      />
                     }
                   >
                     <Route path="dashboard" element={<Dashboard />} />
@@ -55,7 +58,9 @@ function App() {
 
                   <Route
                     element={
-                      <ProtectedRoute roles={["product_manager", "super_admin"]} />
+                      <ProtectedRoute
+                        roles={["product_manager", "super_admin"]}
+                      />
                     }
                   >
                     <Route path="products" element={<Product />} />
