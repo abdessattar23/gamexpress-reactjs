@@ -28,7 +28,7 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,8 +37,9 @@ const Checkout = () => {
       setError(null);
       try {
         if (!isAuthenticated) {
-          navigate("/login", { replace: true });
-          return;
+          // navigate("/login", { replace: true });
+          // return;
+          console.log("User not authenticated ", token);
         }
         const response = await api.get("/v2/cart/items");
         setCartItems(response.data.items);

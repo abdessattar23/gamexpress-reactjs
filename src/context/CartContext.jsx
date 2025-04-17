@@ -21,7 +21,7 @@ export const CartProvider = ({ children }) => {
       return [];
     }
   });
-  
+
   const [sessionId, setSessionId] = useState(() => {
     return localStorage.getItem(SESSION_ID_KEY) || null;
   });
@@ -47,33 +47,37 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [isAuthenticated]);
 
-  const cartTotal = Array.isArray(cart) ? cart.reduce((total, item) => {
-    if (!item || !item.product || !item.product.price) return total;
-    return total + parseFloat(item.product.price) * (item.quantity || 1);
-  }, 0) : 0;
+  const cartTotal = Array.isArray(cart)
+    ? cart.reduce((total, item) => {
+        if (!item || !item.product || !item.product.price) return total;
+        return total + parseFloat(item.product.price) * (item.quantity || 1);
+      }, 0)
+    : 0;
 
-  const cartItemCount = Array.isArray(cart) ? cart.reduce((count, item) => {
-    if (!item) return count;
-    return count + (item.quantity || 1);
-  }, 0) : 0;
-  
+  const cartItemCount = Array.isArray(cart)
+    ? cart.reduce((count, item) => {
+        if (!item) return count;
+        return count + (item.quantity || 1);
+      }, 0)
+    : 0;
+
   const fetchCart = async () => {
     try {
       setLoading(true);
-      
+
       let response;
       if (isAuthenticated) {
         response = await api.get("/v2/cart/items");
       } else if (sessionId) {
         response = await api.get("/v2/cart/items", {
-          params: { session_id: sessionId }
+          params: { session_id: sessionId },
         });
       } else {
         setCart([]);
         setLoading(false);
         return;
       }
-      
+
       if (response.data && response.data.items) {
         setCart(response.data.items);
       }
@@ -89,65 +93,71 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const payload = {
         product_id: productId,
-        quantity: quantity
+        quantity: quantity,
       };
-      
-  
+
       if (!isAuthenticated && sessionId) {
         payload.session_id = sessionId;
       }
-      
+
       const response = await api.post("/v2/cart/add", payload);
-      
+
       if (!isAuthenticated && response.data && response.data.session_id) {
         setSessionId(response.data.session_id);
       }
-      
+
       await fetchCart();
-      
+
       return { success: true, message: "Product added to cart" };
     } catch (err) {
       console.error("Error adding to cart:", err);
       setError(err.response?.data?.message || "Failed to add item to cart");
-      return { success: false, message: err.response?.data?.message || "Failed to add item to cart" };
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to add item to cart",
+      };
     } finally {
       setLoading(false);
     }
   };
 
   const updateQuantity = async (itemId, quantity) => {
-    if (quantity < 1) return { success: false, message: "Quantity must be at least 1" };
-    
+    if (quantity < 1)
+      return { success: false, message: "Quantity must be at least 1" };
+
     try {
       setLoading(true);
       setError(null);
-      
-      const item = cart.find(item => item.id === itemId);
+
+      const item = cart.find((item) => item.id === itemId);
       if (!item) {
         throw new Error("Item not found in cart");
       }
-      
+
       const payload = {
         product_id: item.product_id,
-        quantity: quantity
+        quantity: quantity,
       };
-      
+
       if (!isAuthenticated && sessionId) {
         payload.session_id = sessionId;
       }
-      
-      await api.put(`/v2/cart/update`, payload);
-      
+
+      await api.post(`/v2/cart/update`, payload);
+
       await fetchCart();
-      
+
       return { success: true, message: "Quantity updated successfully" };
     } catch (err) {
       console.error("Error updating quantity:", err);
       setError(err.response?.data?.message || "Failed to update quantity");
-      return { success: false, message: err.response?.data?.message || "Failed to update quantity" };
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to update quantity",
+      };
     } finally {
       setLoading(false);
     }
@@ -157,16 +167,22 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       await api.delete(`/v2/cart/remove/${itemId}`);
-      
+
       await fetchCart();
-      
+
       return { success: true, message: "Item removed from cart" };
     } catch (err) {
       console.error("Error removing item from cart:", err);
-      setError(err.response?.data?.message || "Failed to remove item from cart");
-      return { success: false, message: err.response?.data?.message || "Failed to remove item from cart" };
+      setError(
+        err.response?.data?.message || "Failed to remove item from cart"
+      );
+      return {
+        success: false,
+        message:
+          err.response?.data?.message || "Failed to remove item from cart",
+      };
     } finally {
       setLoading(false);
     }
@@ -176,21 +192,24 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const payload = {};
       if (!isAuthenticated && sessionId) {
         payload.session_id = sessionId;
       }
-      
+
       await api.post("/v2/cart/clear", payload);
-      
+
       setCart([]);
-      
+
       return { success: true, message: "Cart cleared successfully" };
     } catch (err) {
       console.error("Error clearing cart:", err);
       setError(err.response?.data?.message || "Failed to clear cart");
-      return { success: false, message: err.response?.data?.message || "Failed to clear cart" };
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to clear cart",
+      };
     } finally {
       setLoading(false);
     }
