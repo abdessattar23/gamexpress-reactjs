@@ -18,6 +18,12 @@ export const AuthProvider = ({ children }) => {
             user: data,
           });
           setIsAuthenticated(true);
+          if (localStorage.getItem("cart_session_id")) {
+            const { data } = await api.post("/v2/cart/merge", {
+              session_id: localStorage.getItem("cart_session_id"),
+            });
+            console.log("Cart merged:", data);
+          }
         }
       } catch (err) {
         console.error("Authentication check failed:", err);

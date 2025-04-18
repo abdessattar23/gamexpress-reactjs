@@ -35,17 +35,17 @@ export const CartProvider = ({ children }) => {
     }
   }, [sessionId]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
-    } catch (e) {
-      console.error("Error saving cart to localStorage:", e);
-    }
-  }, [cart]);
+  // useEffect(() => {
+  //   try {
+  //     localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+  //   } catch (e) {
+  //     console.error("Error saving cart to localStorage:", e);
+  //   }
+  // }, [cart]);
 
   useEffect(() => {
     fetchCart();
-  }, [isAuthenticated]);
+  }, []);
 
   const cartTotal = Array.isArray(cart)
     ? cart.reduce((total, item) => {

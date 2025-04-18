@@ -37,9 +37,8 @@ const Checkout = () => {
       setError(null);
       try {
         if (!isAuthenticated) {
-          // navigate("/login", { replace: true });
-          // return;
-          console.log("User not authenticated ", token);
+          navigate("/login", { replace: true });
+          return;
         }
         const response = await api.get("/v2/cart/items");
         setCartItems(response.data.items);
