@@ -14,6 +14,9 @@ import Layout from "./components/Layout";
 import Category from "./pages/admin/Category";
 import Product from "./pages/admin/Product";
 import ProductDetail from "./pages/product/detail";
+import CartPage from './pages/Card/CartPage';
+import ProductsPage from './pages/product/ProductCard';
+
 
 function App() {
   return (
@@ -34,6 +37,8 @@ function App() {
 
               {/* Product detail route - public */}
               <Route path="products/:id" element={<ProductDetail />} />
+              <Route path="products" element={<ProductsPage />} />
+
 
               {/* Protected routes */}
               <Route
@@ -42,7 +47,11 @@ function App() {
                 }
               >
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="cart" element={<CartPage />} />
+
               </Route>
+
+
 
               <Route element={<ProtectedRoute roles={["super_admin"]} />}>
                 <Route path="categories" element={<Category />} />
